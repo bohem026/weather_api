@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>open weather map</title>
+  </head>
+  <body>
+    <h1>다낭시</h1>
+    <h2>현재 날씨</h2>
+    <h3>날씨 설명: <span id="cdesc"></span></h3>
+    <h3>습도: <span id="chum"></span></h3>
+    <h3>풍속: <span id="cwind"></span></h3>
+  </body>
+  <script>
+    const cdesc = document.querySelector("#cdesc");
+    const chum = document.querySelector("#chum");
+    const cwind = document.querySelector("#cwind");
+
+    fetch(
+      "https://api.openweathermap.org/data/2.5/weather?id=1488950&appid=ef7d17077a1c4114719d316d11e8a94b&units=metric",
+    )
+      .then(
+        (res) => res.json(), // json 데이터 -> object 변환
+      )
+      .then((result) => {
+        console.log(result);
+        cdesc.innerText = result.weather[0].description;
+        chum.innerText = result.main.humidity;
+        cwind.innerText = result.wind.speed;
+      });
+  </script>
+</html>
