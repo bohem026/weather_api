@@ -12,6 +12,14 @@
     />
     <link rel="stylesheet" href="css/datepicker.material.css" />
     <script src="datepicker.js"></script>
+    <style>
+      .alert {
+        display: none;
+      }
+      .alert.active {
+        display: block;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -31,13 +39,11 @@
         </thead>
         <tbody id="target">
           <!-- <tr>
-            <th scope="row">1</th>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td>@mdo</td>
+            <th colspan="4">조회중입니다.</th>
           </tr> -->
         </tbody>
       </table>
+      <div class="alert alert-primary" role="alert">A simple primary alert—check it out!</div>
     </div>
     <script>
       const dateForm = document.querySelector("#dateForm");
@@ -69,6 +75,10 @@
           .map((v, i) => (i === 0 ? v : v.padStart(2, "0"))) // [2026,05,22]
           .join(""); //20260522
 
+        target.innerHTML = `<tr>
+            <th colspan="4">조회중입니다.</th>
+          </tr>`;
+
         console.log(formatDate); // 20260522
         inqueryShortTermWeather(formatDate);
       });
@@ -77,14 +87,21 @@
         fetch(
           `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=458447a5ba7c30ce8d45c471c2cff5e05b37c43a9a712708405c2200d61ff01c&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${date}&base_time=0500&nx=55&ny=127`,
         )
-          .then((result) => {
-            console.log(result);
-            return result.json(); //json -> js object 변환, 다음 then으로 전달
+          .then((response) => {
+            console.log(response);
+            if (!response.ok) {
+              throw new Error("서버에 문제가 있습니다. 잠시 후 다시 시도해주세요.");
+            }
+            return response.json(); //json -> js object 변환, 다음 then으로 전달
           })
           .then((result) => {
             console.log(result);
-            let data = result.response.body.items.item;
+            let data = result.response?.body?.items?.item;
             console.log(data);
+            if (!data || data.length === 0) {
+              throw new Error("조회 결과가 없습니다.");
+            }
+
             let t1hArr = data.filter((d) => d.category === "TMP"); // 온도
             let rehArr = data.filter((d) => d.category === "REH"); // 습도
 
@@ -102,7 +119,18 @@
                   </tr>`;
             });
             target.innerHTML = tableData;
+          })
+          .catch((error) => {
+            console.log(error);
+            showMessage(error);
           });
+      }
+
+      // 인포창 띄우기 함수
+      const alertBox = document.querySelector(".alert");
+      function showMessage(msg) {
+        alertBox.textContent = msg;
+        alertBox.classList.add("active");
       }
     </script>
   </body>
